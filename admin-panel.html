@@ -1,3 +1,4 @@
+	
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -98,26 +99,6 @@ button{
 <script>
 
 /* =========================
-   CLOUDINARY UPLOAD
-========================= */
-async function uploadToCloudinary(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "unsigned_upload");
-
-  const res = await fetch(
-    "https://api.cloudinary.com/v1_1/dmz9gpp1b/image/upload",
-    {
-      method: "POST",
-      body: formData
-    }
-  );
-
-  const data = await res.json();
-  return data.secure_url;
-}
-
-/* =========================
    DATA
 ========================= */
 let products = JSON.parse(localStorage.getItem("products")) || [];
@@ -182,9 +163,9 @@ function getVal(id){
 }
 
 /* =========================
-   ADD PRODUCT (UPDATED)
+   ADD PRODUCT (FIX TRIỆT ĐỂ)
 ========================= */
-document.getElementById("btnAdd").addEventListener("click", async function () {
+document.getElementById("btnAdd").addEventListener("click", function () {
 
   try {
 
@@ -199,59 +180,69 @@ document.getElementById("btnAdd").addEventListener("click", async function () {
     if (!price) return alert("Giá không hợp lệ");
     if (!file) return alert("Chưa chọn ảnh");
 
-    const imgUrl = await uploadToCloudinary(file);
+    const reader = new FileReader();
 
-    let spec = {};
+    reader.onload = function (e) {
 
-    if(category === "cam-in" || category === "cam-ngoai" || category === "home"){
-      spec = {
-        doPhanGiai: getVal("doPhanGiai"),
-        gocNhin: getVal("gocNhin"),
-        ketNoi: getVal("ketNoi")
-      };
-    }
+      let spec = {};
 
-    else if(category === "sd"){
-      spec = {
-        dungLuong: getVal("dungLuong"),
-        tocDo: getVal("tocDo"),
-        loai: getVal("loai"),
-        baoHanh: getVal("baoHanh")
-      };
-    }
+      if(category === "cam-in" || category === "cam-ngoai" || category === "home"){
+        spec = {
+          doPhanGiai: getVal("doPhanGiai"),
+          gocNhin: getVal("gocNhin"),
+          ketNoi: getVal("ketNoi")
+        };
+      }
 
-    else{
-      spec = {
-        moTaCombo: getVal("moTaCombo")
-      };
-    }
+      else if(category === "sd"){
+        spec = {
+          dungLuong: getVal("dungLuong"),
+          tocDo: getVal("tocDo"),
+          loai: getVal("loai"),
+          baoHanh: getVal("baoHanh")
+        };
+      }
 
-    products.push({
-      id: Date.now(),
-      name,
-      price,
-      oldPrice,
-      desc,
-      category,
-      img: imgUrl,
-      featured: document.getElementById("featured").checked,
-      spec
-    });
+      else{
+        spec = {
+          moTaCombo: getVal("moTaCombo")
+        };
+      }
 
-    save();
-    render();
+      products.push({
+        id: Date.now(),
+        name,
+        price,
+        oldPrice,
+        desc,
+        category,
+        img: e.target.result,
+        featured: document.getElementById("featured").checked,
+        spec
+      });
 
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("oldPrice").value = "";
-    document.getElementById("desc").value = "";
-    document.getElementById("fileImg").value = "";
-    document.getElementById("featured").checked = false;
+      save();
+      render();
 
-    toast("✔ Upload thành công");
+      document.getElementById("name").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("oldPrice").value = "";
+      document.getElementById("desc").value = "";
+      document.getElementById("fileImg").value = "";
+      document.getElementById("featured").checked = false;
+
+      toast("✔ Upload thành công");
+
+    };
+
+    reader.onerror = function () {
+      alert("Lỗi đọc ảnh");
+    };
+
+    reader.readAsDataURL(file);
 
   } catch (err) {
-    alert("Lỗi: " + err.message);
+    alert("Lỗi JS: " + err.message);
   }
 
 });
